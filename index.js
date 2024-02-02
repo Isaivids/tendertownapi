@@ -15,7 +15,7 @@ app.use('/',(req,res)=>{
 if (process.env.MONGO_DB_URL) {
     mongoose.connect(process.env.MONGO_DB_URL)
         .then(() => console.log('DB connected successfully'))
-        .catch((err: any) => console.log(err.message));
+        .catch((err) => console.log(err.message));
 } else {
     console.error('MONGO_DB_URL environment variable is not defined.');
 }
