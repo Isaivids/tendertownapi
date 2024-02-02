@@ -8,10 +8,10 @@ dotenv.config();
 const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(cors({ origin: true, credentials: true }));
-// app.use('/', router);
-app.use('/',(req,res)=>{
-    res.json({message : 'success'})
-})
+app.use('/', router);
+// app.use('/',(req,res)=>{
+//     res.json({message : 'success'})
+// })
 if (process.env.MONGO_DB_URL) {
     mongoose.connect(process.env.MONGO_DB_URL)
         .then(() => console.log('DB connected successfully'))
