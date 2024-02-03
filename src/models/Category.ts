@@ -5,6 +5,7 @@ const category = new mongoose.Schema({
   categoryId: { type: String, unique: true, required: true, default: uuidv4 },
   name: { type: String, required: true, unique: true },
   description: { type: String },
+  image : {type : String}
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });

@@ -1,11 +1,28 @@
 import express from "express";
 import CategorySchema from "../models/Category";
-import { v4 as uuidv4 } from 'uuid';
+import { v2 as cloudinary } from 'cloudinary';
+import dotenv from 'dotenv';
+dotenv.config();
+
+cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET
+});
 
 export const addCategory = async (req: any, res: any) => {
     try {
-        console.log(req.body);
-        const result = await CategorySchema.insertMany(req.body);
+        const updatedCategories = req.body.map(async (category: any) => {
+            const base64Image = category.image;
+            const cloudinaryResponse = await cloudinary.uploader.upload('data:image/png;base64,' + base64Image);
+            category.image = cloudinaryResponse.secure_url;
+            return category;
+        });
+
+        // Wait for all image uploads to complete
+        const updatedCategoriesWithCloudinaryURLs = await Promise.all(updatedCategories);
+        console.log(updatedCategoriesWithCloudinaryURLs)
+        const result = await CategorySchema.insertMany(updatedCategoriesWithCloudinaryURLs);
         return res.status(201).json({
             status: true,
             message: 'Categories added successfully',
