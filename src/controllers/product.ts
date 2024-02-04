@@ -3,9 +3,9 @@ import dotenv from 'dotenv';
 import productSchema from "../models/Product";
 import { v2 as cloudinary } from 'cloudinary';
 cloudinary.config({
-    cloud_name: process.env.cloud_name,
-    api_key: process.env.api_key,
-    api_secret: process.env.api_secret
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET
 });
 dotenv.config();
 const router = express.Router();
@@ -31,6 +31,7 @@ export const createProduct = async (req: any, res: any) => {
     try {
         const { name, description, photo, amount, category } = req.body;
         const photoUrl = await cloudinary.uploader.upload('data:image/png;base64,' + photo);
+        console.log(photoUrl)
         const createdProduct = await productSchema.create({
             name,
             description,
@@ -40,6 +41,7 @@ export const createProduct = async (req: any, res: any) => {
         })
         res.status(201).send({ message: 'Success', data: createdProduct, status: true })
     } catch (error: any) {
+        console.log(error)
         let errorResponse: { status: Boolean, message: string }
         if (error.code === 11000 && error.keyPattern && error.keyValue) {
             errorResponse = {

@@ -40,10 +40,11 @@ export const addToCart = async (req: Request, res: Response) => {
                 { upsert: true }
             );
         }
-
+        const cartItems: any = await cartSchema.findOne({ userId });
         return res.status(201).json({
             status: true,
             message: 'Product added to the cart successfully',
+            data: cartItems.orderedProducts
         });
     } catch (error: any) {
         return res.status(500).json({
@@ -85,7 +86,8 @@ export const getAllCartItems = async (req: Request, res: Response) => {
 //delete entire item
 export const deleteCartItem = async (req: Request, res: Response) => {
     try {
-        const { userId, productId } = req.body;
+        const { userId } = req.body;
+
         // Find the user's cart
         const userCart = await cartSchema.findOne({ userId });
 
@@ -96,7 +98,37 @@ export const deleteCartItem = async (req: Request, res: Response) => {
             });
         }
 
-        // Find the index of the item to be deleted
+        // Remove all products from the orderedProducts array
+        userCart.orderedProducts = [];
+
+        // Save the updated cart
+        await userCart.save();
+
+        return res.status(200).json({
+            status: true,
+            message: 'All products removed from the cart successfully',
+            data: userCart.orderedProducts,
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            status: false,
+            message: 'Error removing all products from the cart',
+            data: [],
+        });
+    }
+};
+
+export const deleteOneCartItem = async (req: Request, res: Response) => {
+    try {
+        const { userId,productId } = req.body;
+        const userCart = await cartSchema.findOne({ productId });
+        if (!userCart) {
+            return res.status(404).json({
+                status: false,
+                message: 'Cart not found for the specified user ID',
+            });
+        }
         const itemIndex = userCart.orderedProducts.findIndex(
             (item) => item.productId === productId
         );
@@ -107,19 +139,15 @@ export const deleteCartItem = async (req: Request, res: Response) => {
                 message: 'Item not found in the cart',
             });
         }
-
-        // Remove the item from the orderedProducts array
         userCart.orderedProducts.splice(itemIndex, 1);
-
-        // Save the updated cart
         await userCart.save();
-
         return res.status(200).json({
             status: true,
             message: 'Item removed from the cart successfully',
             data: userCart.orderedProducts,
         });
-    } catch (error: any) {
+    } catch (error) {
+        console.error(error);
         return res.status(500).json({
             status: false,
             message: 'Error removing item from the cart',
@@ -128,61 +156,58 @@ export const deleteCartItem = async (req: Request, res: Response) => {
     }
 };
 
+
 export const updateItemCount = async (req: Request, res: Response) => {
     try {
-      const { userId, productId, action } = req.body;
-  
-      // Find the user's cart
-      const userCart = await cartSchema.findOne({ userId });
-  
-      if (!userCart) {
-        return res.status(404).json({
-          status: false,
-          message: 'Cart not found for the specified user ID',
-        });
-      }
-  
-      // Find the index of the item to be updated
-      const itemIndex = userCart.orderedProducts.findIndex(
-        (item) => item.productId === productId
-      );
-  
-      if (itemIndex === -1) {
-        return res.status(404).json({
-          status: false,
-          message: 'Item not found in the cart',
-        });
-      }
-  
-      // Perform the specified action (increase or decrease)
-      if (action === 'increase') {
-        userCart.orderedProducts[itemIndex].count += 1;
-      } else if (action === 'decrease') {
-        // Decrease the count by 1 (assuming count should not go below 1)
-        if (userCart.orderedProducts[itemIndex].count > 1) {
-          userCart.orderedProducts[itemIndex].count -= 1;
+        const { userId, productId, action } = req.body;
+        const userCart = await cartSchema.findOne({ userId });
+
+        if (!userCart) {
+            return res.status(404).json({
+                status: false,
+                message: 'Cart not found for the specified user ID',
+            });
         }
-      } else {
-        return res.status(400).json({
-          status: false,
-          message: 'Invalid action. Use "increase" or "decrease"',
+        const itemIndex = userCart.orderedProducts.findIndex(
+            (item) => item.productId === productId
+        );
+
+        if (itemIndex === -1) {
+            return res.status(404).json({
+                status: false,
+                message: 'Item not found in the cart',
+            });
+        }
+        if (action === 'increase') {
+            userCart.orderedProducts[itemIndex].count += 1;
+        } else if (action === 'decrease') {
+            if (userCart.orderedProducts[itemIndex].count > 1) {
+                userCart.orderedProducts[itemIndex].count -= 1;
+            }
+            if (userCart.orderedProducts[itemIndex].count === 1) {
+                userCart.orderedProducts.splice(itemIndex, 1);
+                await userCart.save();
+            }
+        } else {
+            return res.status(400).json({
+                status: false,
+                message: 'Invalid action. Use "increase" or "decrease"',
+            });
+        }
+
+        await userCart.save();
+        const cartItems: any = await cartSchema.findOne({ userId });
+        return res.status(200).json({
+            status: true,
+            message: `Item count ${action}d successfully`,
+            data: cartItems.orderedProducts,
         });
-      }
-  
-      // Save the updated cart
-      await userCart.save();
-  
-      return res.status(200).json({
-        status: true,
-        message: `Item count ${action}d successfully`,
-        data: userCart.orderedProducts,
-      });
     } catch (error: any) {
-      const { action } = req.body;
-      return res.status(500).json({
-        status: false,
-        message: `Error ${action}ing item count`,
-        data: [],
-      });
+        const { action } = req.body;
+        return res.status(500).json({
+            status: false,
+            message: `Error ${action}ing item count`,
+            data: [],
+        });
     }
-  };
+};

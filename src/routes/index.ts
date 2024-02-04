@@ -1,7 +1,7 @@
 import express from 'express';
 import { createProduct, deleteProduct, getProduct } from '../controllers/product';
 import { addCategory, getcategory } from '../controllers/category';
-import { addToCart, deleteCartItem, getAllCartItems, updateItemCount } from '../controllers/cart';
+import { addToCart, deleteCartItem, deleteOneCartItem, getAllCartItems, updateItemCount } from '../controllers/cart';
 
 const router = express.Router();
 //product
@@ -19,4 +19,5 @@ router.post('/addTocart',addToCart);
 router.post('/getCartItems',getAllCartItems);
 router.post('/removeItem',deleteCartItem);
 router.post('/updateCount',updateItemCount)
+router.post('/deleteOneCartItem',deleteOneCartItem)
 export default router;
