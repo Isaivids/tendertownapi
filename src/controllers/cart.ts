@@ -54,6 +54,72 @@ export const addToCart = async (req: Request, res: Response) => {
     }
 };
 
+//addMultipleItems
+export const addMultipleItems = async (req: Request, res: Response) => {
+    try {
+        const { userId, products } = req.body;
+
+        const bulkUpdateOperations = products.map((product:any) => {
+            return {
+                updateOne: {
+                    filter: {
+                        userId,
+                        'orderedProducts.productId': product.productId,
+                    },
+                    update: {
+                        $inc: { 'orderedProducts.$.count': product.count },
+                    },
+                    upsert: true,
+                },
+            };
+        });
+        await cartSchema.bulkWrite(bulkUpdateOperations);
+
+        const newProducts = products.filter((product:any) => {
+            return !bulkUpdateOperations.some((op:any) => {
+                const filter = op.updateOne.filter;
+                return (
+                    filter.userId === userId &&
+                    filter['orderedProducts.productId'] === product.productId
+                );
+            });
+        });
+
+        if (newProducts.length > 0) {
+            await cartSchema.updateOne(
+                { userId },
+                {
+                    $push: {
+                        orderedProducts: {
+                            $each: newProducts.map((product:any) => ({
+                                productId: product.productId,
+                                name: product.name,
+                                price: product.price,
+                                count: product.count,
+                                createdAt: new Date(),
+                            })),
+                        },
+                    },
+                },
+                { upsert: true }
+            );
+        }
+
+        const cartItems: any = await cartSchema.findOne({ userId });
+        return res.status(201).json({
+            status: true,
+            message: 'Products added to the cart successfully',
+            data: cartItems.orderedProducts,
+        });
+    } catch (error: any) {
+        return res.status(500).json({
+            status: false,
+            message: 'Error adding products to the cart',
+        });
+    }
+};
+
+
 //getusercart
 export const getAllCartItems = async (req: Request, res: Response) => {
     try {
@@ -67,7 +133,7 @@ export const getAllCartItems = async (req: Request, res: Response) => {
                 data: cartItems.orderedProducts,
             });
         } else {
-            return res.status(404).json({
+            return res.status(201).json({
                 status: false,
                 message: 'Cart not found for the specified user ID',
                 data: [],
