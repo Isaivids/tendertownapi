@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-interface OrderedProduct {
+interface Product {
   productId: string;
   name: string;
   price: number;
@@ -8,24 +8,24 @@ interface OrderedProduct {
   createdAt: Date;
 }
 
-interface Cart extends Document {
+interface CartDocument extends Document {
   userId: string;
-  orderedProducts: OrderedProduct[];
+  orderedProducts: Product[];
 }
 
-const cart = new Schema<Cart>({
-  userId: { type: String, required: true },
-  orderedProducts: [
-    {
-      productId: { type: String, required: true },
-      name: { type: String, required: true },
-      price: { type: Number, required: true },
-      count: { type: Number, required: true, default: 1 },
-      createdAt: { type: Date, default: Date.now },
-    },
-  ],
+const productSchema = new Schema<Product>({
+  productId: { type: String, required: true },
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
+  count: { type: Number, required: true },
+  createdAt: { type: Date, required: true,default : Date.now },
 });
 
-const cartSchema = mongoose.model<Cart>('Cart', cart);
+const cartSchema = new Schema<CartDocument>({
+  userId: { type: String, required: true, unique: true },
+  orderedProducts: { type: [productSchema], default: [] },
+});
 
-export default cartSchema;
+const CartModel = mongoose.model<CartDocument>('Cart', cartSchema);
+
+export default CartModel;

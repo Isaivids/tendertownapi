@@ -59,67 +59,58 @@ export const addMultipleItems = async (req: Request, res: Response) => {
     try {
         const { userId, products } = req.body;
 
-        const bulkUpdateOperations = products.map((product:any) => {
-            return {
-                updateOne: {
-                    filter: {
-                        userId,
-                        'orderedProducts.productId': product.productId,
-                    },
-                    update: {
-                        $inc: { 'orderedProducts.$.count': product.count },
-                    },
-                    upsert: true,
-                },
-            };
-        });
-        await cartSchema.bulkWrite(bulkUpdateOperations);
+        // Find the user's cart
+        let userCart:any = await cartSchema.findOne({ userId });
 
-        const newProducts = products.filter((product:any) => {
-            return !bulkUpdateOperations.some((op:any) => {
-                const filter = op.updateOne.filter;
-                return (
-                    filter.userId === userId &&
-                    filter['orderedProducts.productId'] === product.productId
-                );
-            });
-        });
-
-        if (newProducts.length > 0) {
-            await cartSchema.updateOne(
-                { userId },
-                {
-                    $push: {
-                        orderedProducts: {
-                            $each: newProducts.map((product:any) => ({
-                                productId: product.productId,
-                                name: product.name,
-                                price: product.price,
-                                count: product.count,
-                                createdAt: new Date(),
-                            })),
-                        },
-                    },
-                },
-                { upsert: true }
-            );
+        if (!userCart) {
+            // If the user's cart doesn't exist, create a new one
+            userCart = new cartSchema({ userId, orderedProducts: [] });
+            await userCart.save();
         }
 
-        const cartItems: any = await cartSchema.findOne({ userId });
+        // Remove existing products from the cart
+        await cartSchema.updateOne(
+            { userId },
+            {
+                $pull: { orderedProducts: { productId: { $in: userCart.orderedProducts.map((p:any) => p.productId) } } },
+            }
+        );
+
+        // Add new products to the cart
+        await cartSchema.updateOne(
+            { userId },
+            {
+                $push: {
+                    orderedProducts: {
+                        $each: products.map((product: any) => ({
+                            productId: product.productId,
+                            name: product.name,
+                            price: product.price,
+                            count: product.count,
+                            createdAt: new Date(),
+                        })),
+                    },
+                },
+            }
+        );
+
+        // Fetch the final updated cart
+        userCart = await cartSchema.findOne({ userId });
+
         return res.status(201).json({
             status: true,
             message: 'Products added to the cart successfully',
-            data: cartItems.orderedProducts,
+            data: userCart.orderedProducts,
         });
     } catch (error: any) {
+        console.error('Error adding products to the cart:', error);
         return res.status(500).json({
             status: false,
             message: 'Error adding products to the cart',
+            error: error.message,
         });
     }
-};
-
-
+}
 //getusercart
 export const getAllCartItems = async (req: Request, res: Response) => {
     try {
@@ -187,7 +178,7 @@ export const deleteCartItem = async (req: Request, res: Response) => {
 
 export const deleteOneCartItem = async (req: Request, res: Response) => {
     try {
-        const { userId,productId } = req.body;
+        const { userId, productId } = req.body;
         const userCart = await cartSchema.findOne({ productId });
         if (!userCart) {
             return res.status(404).json({
