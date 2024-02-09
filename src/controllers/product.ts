@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from 'dotenv';
+import xlsx from 'xlsx'
 import productSchema from "../models/Product";
 import { v2 as cloudinary } from 'cloudinary';
 cloudinary.config({
@@ -14,7 +15,7 @@ const router = express.Router();
 export const getProduct = async (req: any, res: any) => {
     try {
         const category = req.query.category
-        let posts:any;
+        let posts: any;
         if (category) {
             posts = await productSchema.find({ category: { $in: [category] } });
         } else {
@@ -26,18 +27,43 @@ export const getProduct = async (req: any, res: any) => {
     }
 }
 
+//excel to json products
+export const excelToJson = async (req: any, res: any) => {
+    try {
+        const base64Data = req.body.excel;
+        const buffer = Buffer.from(base64Data, 'base64');
+        const workbook = xlsx.read(buffer, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = xlsx.utils.sheet_to_json(sheet);
+        const result = await productSchema.insertMany(jsonData);
+        res.status(201).send({ message: 'Success', data: result, status: true })
+    } catch (error:any) {
+        console.log(error)
+        let errorResponse: { status: Boolean, message: string }
+        if (error.code === 11000 && error.keyPattern && error.keyValue) {
+            errorResponse = {
+                status: false,
+                message: `Product with name '${error.keyValue.name}' already exists.`,
+            };
+        } else {
+            errorResponse = { status: false, message: 'Error inserting product' };
+        }
+        res.status(400).send(errorResponse)
+    }
+}
 //create a product
 export const createProduct = async (req: any, res: any) => {
     try {
-        const { name, description, photo, amount, category } = req.body;
+        const { name, description, photo, amount, category,gst } = req.body;
         const photoUrl = await cloudinary.uploader.upload('data:image/png;base64,' + photo);
-        console.log(photoUrl)
         const createdProduct = await productSchema.create({
             name,
             description,
             photo: photoUrl.url,
             amount,
-            category
+            category,
+            gst
         })
         res.status(201).send({ message: 'Success', data: createdProduct, status: true })
     } catch (error: any) {

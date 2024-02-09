@@ -5,7 +5,8 @@ const product = new mongoose.Schema({
     description: {type: String},
     photo:{type: String, required: true},
     amount:{type: Number, required: true},
-    category : {type : String,required : true}
+    category : {type : String,required : true},
+    gst : {type:Number,required : true}
 },{
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 })

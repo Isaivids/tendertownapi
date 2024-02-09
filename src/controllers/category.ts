@@ -21,7 +21,6 @@ export const addCategory = async (req: any, res: any) => {
 
         // Wait for all image uploads to complete
         const updatedCategoriesWithCloudinaryURLs = await Promise.all(updatedCategories);
-        console.log(updatedCategoriesWithCloudinaryURLs)
         const result = await CategorySchema.insertMany(updatedCategoriesWithCloudinaryURLs);
         return res.status(201).json({
             status: true,
