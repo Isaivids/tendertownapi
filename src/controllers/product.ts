@@ -55,7 +55,8 @@ export const excelToJson = async (req: any, res: any) => {
 //create a product
 export const createProduct = async (req: any, res: any) => {
     try {
-        const { name, description, photo, amount, category,gst } = req.body;
+        let { name, description, photo, amount, category,gst } = req.body;
+        photo = photo.split(',')[1];
         const photoUrl = await cloudinary.uploader.upload('data:image/png;base64,' + photo);
         const createdProduct = await productSchema.create({
             name,
@@ -65,7 +66,8 @@ export const createProduct = async (req: any, res: any) => {
             category,
             gst
         })
-        res.status(201).send({ message: 'Success', data: createdProduct, status: true })
+        const products = await productSchema.find();
+        res.status(201).send({ message: 'Success', data: products, status: true })
     } catch (error: any) {
         console.log(error)
         let errorResponse: { status: Boolean, message: string }
@@ -81,11 +83,55 @@ export const createProduct = async (req: any, res: any) => {
     }
 }
 
+export const updateProduct = async (req: any, res: any) => {
+    try {
+        const productId = req.body.id;
+        const { name, description, photo, amount, category, gst } = req.body;
+        let photoUrl;
+        if (photo.startsWith('data:')) {
+            const base64Image = photo.split(',')[1];
+            const uploadedPhoto = await cloudinary.uploader.upload('data:image/png;base64,' + base64Image);
+            photoUrl = uploadedPhoto.url;
+        }else{
+            photoUrl = photo
+        }
+
+        const updatedProduct = await productSchema.findByIdAndUpdate(productId, {
+            name,
+            description,
+            photo: photoUrl,
+            amount,
+            category,
+            gst
+        }, { new: true });
+
+        if (!updatedProduct) {
+            return res.status(404).send({ status: false, message: 'Product not found' });
+        }
+        const products = await productSchema.find();
+        res.status(200).send({ message: 'Product updated successfully', data: products, status: true });
+    } catch (error: any) {
+        console.log(error);
+        let errorResponse: { status: boolean, message: string };
+        if (error.code === 11000 && error.keyPattern && error.keyValue) {
+            errorResponse = {
+                status: false,
+                message: `Product with name '${error.keyValue.name}' already exists.`,
+            };
+        } else {
+            errorResponse = { status: false, message: 'Error updating product' };
+        }
+        res.status(400).send(errorResponse);
+    }
+}
+
+
 //delete a product
 export const deleteProduct = (async (req: any, res: any) => {
     try {
         await productSchema.findByIdAndDelete(req.body.id);
-        res.status(200).json({ message: 'Product deleted successfully', status: true })
+        const products = await productSchema.find();
+        res.status(200).json({ message: 'Product deleted successfully', status: true, data:products })
     } catch (error) {
         res.status(501).json({ message: error, status: false })
     }
