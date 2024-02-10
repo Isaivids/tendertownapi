@@ -3,12 +3,15 @@ import cors from 'cors'
 import dotenv from 'dotenv';
 import mongoose from "mongoose";
 import router from "./src/routes";
+import bodyParser = require('body-parser');
 dotenv.config();
 
 const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(cors({ origin: true, credentials: true }));
 app.use('/', router);
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 // app.use('/',(req,res)=>{
 //     res.json({message : 'success'})
 // })
