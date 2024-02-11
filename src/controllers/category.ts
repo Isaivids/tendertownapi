@@ -25,11 +25,12 @@ export const addCategory = async (req: any, res: any) => {
             return category;
         }));
 
-        const result = await CategorySchema.insertMany(updatedCategories);
+        await CategorySchema.insertMany(updatedCategories);
+        const category = await CategorySchema.find();
         return res.status(201).json({
             status: true,
             message: 'Categories added successfully',
-            data: result,
+            data: category,
         });
     } catch (error: any) {
         console.error('Error:', error);
@@ -58,10 +59,11 @@ export const getcategory = async (req: any, res: any) => {
 }
 
 //delete a category
-export const deleteProduct = (async (req: any, res: any) => {
+export const deleteCategory = (async (req: any, res: any) => {
     try {
         await CategorySchema.findByIdAndDelete(req.body.id);
-        res.status(200).json({ message: 'Product deleted successfully', status: true })
+        const rs = await CategorySchema.find()
+        res.status(200).json({ message: 'Category deleted successfully', status: true, data: rs })
     } catch (error) {
         res.status(501).json({ message: error, status: false })
     }
