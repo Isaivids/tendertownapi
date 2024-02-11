@@ -2,7 +2,7 @@ import express from 'express';
 import { createProduct, deleteProduct, excelToJson, getProduct, updateProduct } from '../controllers/product';
 import { addCategory, deleteCategory, getcategory } from '../controllers/category';
 import { addMultipleItems, addToCart, deleteCartItem, deleteOneCartItem, getAllCartItems, updateItemCount } from '../controllers/cart';
-import { getUsers } from '../controllers/users';
+import { changeActive, getUsers } from '../controllers/users';
 
 const router = express.Router();
 //product
@@ -27,5 +27,6 @@ router.post('/deleteOneCartItem',deleteOneCartItem)
 router.post('/addMultipleItems',addMultipleItems)
 
 //users
-router.get('/getUsers',getUsers)
+router.get('/getUsers',getUsers);
+router.put('/changeActive',changeActive);
 export default router;
