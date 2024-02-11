@@ -83,6 +83,7 @@ export const createProduct = async (req: any, res: any) => {
     }
 }
 
+//update a product
 export const updateProduct = async (req: any, res: any) => {
     try {
         const productId = req.body.id;
@@ -124,7 +125,6 @@ export const updateProduct = async (req: any, res: any) => {
         res.status(400).send(errorResponse);
     }
 }
-
 
 //delete a product
 export const deleteProduct = (async (req: any, res: any) => {

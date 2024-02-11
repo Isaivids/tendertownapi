@@ -144,23 +144,15 @@ export const getAllCartItems = async (req: Request, res: Response) => {
 export const deleteCartItem = async (req: Request, res: Response) => {
     try {
         const { userId } = req.body;
-
-        // Find the user's cart
         const userCart = await cartSchema.findOne({ userId });
-
         if (!userCart) {
             return res.status(404).json({
                 status: false,
                 message: 'Cart not found for the specified user ID',
             });
         }
-
-        // Remove all products from the orderedProducts array
         userCart.orderedProducts = [];
-
-        // Save the updated cart
         await userCart.save();
-
         return res.status(200).json({
             status: true,
             message: 'All products removed from the cart successfully',
