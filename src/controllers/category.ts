@@ -12,16 +12,20 @@ cloudinary.config({
 
 export const addCategory = async (req: any, res: any) => {
     try {
-        const updatedCategories = req.body.map(async (category: any) => {
-            const base64Image = category.image;
-            const cloudinaryResponse = await cloudinary.uploader.upload('data:image/png;base64,' + base64Image);
-            category.image = cloudinaryResponse.secure_url;
+        const categories = req.body;
+        const updatedCategories = await Promise.all(categories.map(async (category: any) => {
+            if (category.image.startsWith('data:')) {
+                const base64Image = category.image;
+                const cloudinaryResponse = await cloudinary.uploader.upload(`${base64Image}`, 
+                { 
+                  resource_type: "image",folder: "categories",public_id : category.name
+                });
+                category.image = cloudinaryResponse.secure_url;
+            }
             return category;
-        });
+        }));
 
-        // Wait for all image uploads to complete
-        const updatedCategoriesWithCloudinaryURLs = await Promise.all(updatedCategories);
-        const result = await CategorySchema.insertMany(updatedCategoriesWithCloudinaryURLs);
+        const result = await CategorySchema.insertMany(updatedCategories);
         return res.status(201).json({
             status: true,
             message: 'Categories added successfully',
