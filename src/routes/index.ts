@@ -1,6 +1,6 @@
 import express from 'express';
 import { createProduct, deleteProduct, excelToJson, getProduct, updateProduct } from '../controllers/product';
-import { addCategory, deleteCategory, getcategory } from '../controllers/category';
+import { addCategory, deleteCategory, getcategory, updateCategory } from '../controllers/category';
 import { addMultipleItems, addToCart, deleteCartItem, deleteOneCartItem, getAllCartItems, updateItemCount } from '../controllers/cart';
 import { changeActive, getUsers } from '../controllers/users';
 
@@ -17,6 +17,7 @@ router.post('/addFromExcel',excelToJson)
 router.get('/getCategory',getcategory);
 router.post('/addCategory',addCategory); //bulk insert possible
 router.post('/deleteCategory',deleteCategory);
+router.post('/updateCategory',updateCategory)
 
 //cart
 router.post('/addTocart',addToCart);

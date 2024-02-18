@@ -58,25 +58,17 @@ export const addToCart = async (req: Request, res: Response) => {
 export const addMultipleItems = async (req: Request, res: Response) => {
     try {
         const { userId, products } = req.body;
-
-        // Find the user's cart
         let userCart:any = await cartSchema.findOne({ userId });
-
         if (!userCart) {
-            // If the user's cart doesn't exist, create a new one
             userCart = new cartSchema({ userId, orderedProducts: [] });
             await userCart.save();
         }
-
-        // Remove existing products from the cart
         await cartSchema.updateOne(
             { userId },
             {
                 $pull: { orderedProducts: { productId: { $in: userCart.orderedProducts.map((p:any) => p.productId) } } },
             }
         );
-
-        // Add new products to the cart
         await cartSchema.updateOne(
             { userId },
             {
@@ -88,6 +80,7 @@ export const addMultipleItems = async (req: Request, res: Response) => {
                             price: product.price,
                             count: product.count,
                             createdAt: new Date(),
+                            gst : product.gst
                         })),
                     },
                 },

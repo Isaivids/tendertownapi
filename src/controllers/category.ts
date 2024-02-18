@@ -16,10 +16,10 @@ export const addCategory = async (req: any, res: any) => {
         const updatedCategories = await Promise.all(categories.map(async (category: any) => {
             if (category.image.startsWith('data:')) {
                 const base64Image = category.image;
-                const cloudinaryResponse = await cloudinary.uploader.upload(`${base64Image}`, 
-                { 
-                  resource_type: "image",folder: "categories",public_id : category.name
-                });
+                const cloudinaryResponse = await cloudinary.uploader.upload(`${base64Image}`,
+                    {
+                        resource_type: "image", folder: "categories", public_id: category.name
+                    });
                 category.image = cloudinaryResponse.secure_url;
             }
             return category;
@@ -47,6 +47,47 @@ export const addCategory = async (req: any, res: any) => {
         }
     }
 };
+
+
+//updatecategory
+export const updateCategory = async (req: any, res: any) => {
+    try {
+        const categorId = req.body.id;
+        const {name,description,image,filename} = req.body;
+        let imageUrl:any;
+        if (image && image.startsWith('data:')) {
+            const base64Image = image;
+            const cloudinaryResponse = await cloudinary.uploader.upload(`${base64Image}`,
+                {
+                    resource_type: "image", folder: "categories", public_id: filename 
+                });
+            imageUrl = cloudinaryResponse.url;
+        }else{
+            imageUrl = image
+        }
+        const updatedProduct = await CategorySchema.findByIdAndUpdate(categorId, {
+            name,
+            description,
+            image: imageUrl,
+        }, { new: true });
+        if (!updatedProduct) {
+            return res.status(404).send({ status: false, message: 'Product not found' });
+        }
+        const category = await CategorySchema.find();
+        return res.status(200).json({
+            status: true,
+            message: 'Category updated successfully',
+            data: category,
+        });
+    } catch (error: any) {
+        console.error('Error:', error);
+        return res.status(500).json({
+            status: false,
+            message: 'Error updating category',
+        });
+    }
+};
+
 
 //get all category
 export const getcategory = async (req: any, res: any) => {

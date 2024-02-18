@@ -6,6 +6,7 @@ interface Product {
   price: number;
   count: number;
   createdAt: Date;
+  gst:number
 }
 
 interface CartDocument extends Document {
@@ -18,6 +19,7 @@ const productSchema = new Schema<Product>({
   name: { type: String, required: true },
   price: { type: Number, required: true },
   count: { type: Number, required: true },
+  gst: { type: Number, required: true },
   createdAt: { type: Date, required: true,default : Date.now },
 });
 
