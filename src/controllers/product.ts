@@ -12,20 +12,6 @@ dotenv.config();
 const router = express.Router();
 
 //get all products
-// export const getProduct = async (req: any, res: any) => {
-//     try {
-//         const category = req.query.category
-//         let posts: any;
-//         if (category) {
-//             posts = await productSchema.find({ category: { $in: [category] } });
-//         } else {
-//             posts = await productSchema.find();
-//         }
-//         res.status(200).send({ message: 'success', data: posts, status: true })
-//     } catch (error) {
-//         res.status(400).send({ message: error, status: false })
-//     }
-// }
 export const getProduct = async (req: any, res: any) => {
     try {
         const category = req.query.category;

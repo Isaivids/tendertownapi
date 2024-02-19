@@ -94,6 +94,7 @@ export const addMultipleItems = async (req: Request, res: Response) => {
             status: true,
             message: 'Products added to the cart successfully',
             data: userCart.orderedProducts,
+            details : userCart._id
         });
     } catch (error: any) {
         console.error('Error adding products to the cart:', error);
@@ -115,6 +116,7 @@ export const getAllCartItems = async (req: Request, res: Response) => {
                 status: true,
                 message: 'Cart items retrieved successfully',
                 data: cartItems.orderedProducts,
+                details : cartItems._id
             });
         } else {
             return res.status(201).json({
@@ -150,6 +152,7 @@ export const deleteCartItem = async (req: Request, res: Response) => {
             status: true,
             message: 'All products removed from the cart successfully',
             data: userCart.orderedProducts,
+            details : userCart._id
         });
     } catch (error) {
         console.error(error);
