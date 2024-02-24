@@ -3,6 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 const bills = new Schema({
   billNumber: {type: String,required: true},
   gstEnabled : {type : Boolean, default : false},
+  billName : {type : String},
   details: [{
     productId: {type: String,required: true},
     name: {type: String,required: true},

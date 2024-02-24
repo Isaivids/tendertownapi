@@ -213,7 +213,6 @@ export const deleteOneCartItem = async (req: Request, res: Response) => {
     }
 };
 
-
 export const updateItemCount = async (req: Request, res: Response) => {
     try {
         const { userId, productId, action } = req.body;

@@ -1,6 +1,6 @@
 import express from "express";
 import UsersSchema from "../models/Users";
-
+import cartSchema from '../models/Cart';
 const router = express.Router();
 
 //get all users
@@ -20,7 +20,7 @@ export const addUser = async (req: any, res: any) => {
     await UsersSchema.create(req.body);
     const users = await UsersSchema.find();
     res.status(200).send({ message: 'success', data: users, status: true })
-  } catch (error:any) {
+  } catch (error: any) {
     if (error.code === 11000 && error.keyPattern && error.keyValue) {
       return res.status(400).json({
         status: false,
@@ -56,10 +56,11 @@ export const changeActive = async (req: any, res: any) => {
 //delete a user
 export const deleteUser = (async (req: any, res: any) => {
   try {
-      await UsersSchema.findByIdAndDelete(req.body.id);
-      const products = await UsersSchema.find();
-      res.status(200).json({ message: 'User deleted successfully', status: true, data:products })
+    await UsersSchema.findByIdAndDelete(req.body.id);
+    await cartSchema.deleteOne({userId : req.body.name});
+    const users = await UsersSchema.find();
+    res.status(200).json({ message: 'User deleted successfully', status: true, data: users })
   } catch (error) {
-      res.status(501).json({ message: error, status: false })
+    res.status(501).json({ message: error, status: false })
   }
 })
