@@ -12,9 +12,9 @@ app.use(cors({ origin: true, credentials: true }));
 app.use('/', router);
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
-// app.use('/',(req,res)=>{
-//     res.json({message : 'success'})
-// })
+app.use('/',(req,res)=>{
+    res.json({message : 'success'})
+})
 if (process.env.MONGO_DB_URL) {
     mongoose.connect(process.env.MONGO_DB_URL)
         .then(() => console.log('DB connected successfully'))

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import cartSchema from '../models/Cart';
+import UsersSchema from '../models/Users';
 
 
 //addtocart
@@ -58,11 +59,23 @@ export const addToCart = async (req: Request, res: Response) => {
 export const addMultipleItems = async (req: Request, res: Response) => {
     try {
         const { userId, products } = req.body;
-        let userCart:any = await cartSchema.findOne({ userId });
+        //usercheck
+        let userCart: any = await cartSchema.findOne({ userId });
         if (!userCart) {
+            let user = await UsersSchema.findOne({ name: userId });
+            if (!user) {
+                user = new UsersSchema({ name: userId, admin: false, active: true });
+                await user.save();
+            }
             userCart = new cartSchema({ userId, orderedProducts: [] });
             await userCart.save();
         }
+
+        // let userCart:any = await cartSchema.findOne({ userId });
+        // if (!userCart) {
+        //     userCart = new cartSchema({ userId, orderedProducts: [] });
+        //     await userCart.save();
+        // }
         await cartSchema.updateOne(
             { userId },
             {
@@ -89,12 +102,11 @@ export const addMultipleItems = async (req: Request, res: Response) => {
 
         // Fetch the final updated cart
         userCart = await cartSchema.findOne({ userId });
-
         return res.status(201).json({
             status: true,
             message: 'Products added to the cart successfully',
             data: userCart.orderedProducts,
-            details : userCart._id
+            details : userCart._id,
         });
     } catch (error: any) {
         console.error('Error adding products to the cart:', error);
