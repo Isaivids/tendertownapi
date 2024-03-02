@@ -3,8 +3,8 @@ import BillSchema from "../models/Bills";
 
 export const addBill = async (req: any, res: any) => {
     try {
-        const { billNumber, details, gstEnabled,billName } = req.body;
-        const bill = new BillSchema({ billNumber, gstEnabled,billName, details });
+        const { billNumber, details, gstEnabled,billName, cash } = req.body;
+        const bill = new BillSchema({ billNumber, gstEnabled,billName, details,cash });
         await bill.save();
         res.status(201).send({ message: 'Success', status: true })
     } catch (err) {

@@ -4,6 +4,7 @@ const bills = new Schema({
   billNumber: {type: String,required: true},
   gstEnabled : {type : Boolean, default : false},
   billName : {type : String},
+  cash : {type : Boolean, default : false},
   details: [{
     productId: {type: String,required: true},
     name: {type: String,required: true},
