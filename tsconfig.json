@@ -6,7 +6,7 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",  // Add this line
-    "resolveJsonModule": true     // Add this line if you are using JSON imports
+    "moduleResolution": "node",
+    "resolveJsonModule": true  
   }
 }
