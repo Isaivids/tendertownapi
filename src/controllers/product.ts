@@ -15,15 +15,19 @@ const router = express.Router();
 export const getProduct = async (req: any, res: any) => {
     try {
         const category = req.query.category;
+        const name = req.query.name;
         const page = parseInt(req.query.page);
         const rows = parseInt(req.query.rows);
         let query = {};
         if (category) {
             query = { category: { $in: [category] } };
         }
+        if(name){
+            query = { ...query, name: { $regex: name, $options: 'i' } };
+        }
         const totalItems = await productSchema.countDocuments(query);
         const totalPages = Math.ceil(totalItems / rows);
-
+        console.log(totalItems)
         const posts = await productSchema.find(query)
             .skip(page * rows)
             .limit(rows);
