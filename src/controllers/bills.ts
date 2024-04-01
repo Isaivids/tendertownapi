@@ -15,11 +15,15 @@ export const addBill = async (req: any, res: any) => {
 
 export const getBills = async (req: any, res: any) => {
     const { startDate, endDate } = req.body;
+    const startOfDay = new Date(startDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(endDate);
+    endOfDay.setHours(23, 59, 59, 999);
     try {
         let bills:any = await BillSchema.find({
             createdAt: {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate),
+                $gte: startOfDay,
+                $lte: endOfDay,
             },
         }).exec();
 
